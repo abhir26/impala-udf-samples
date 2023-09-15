@@ -17,6 +17,14 @@
 #include <cctype>
 #include <cmath>
 #include <string>
+#include <impala_udf/string-functions.h>
+
+const char* OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const char* AUTH_HEADER = "Authorization: Bearer xxxxxxxxxxxxxxxxxxxxxxxxxx";
+const char* JSON_REQUEST_PREFIX = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\", \"content\": ""\"";
+const char* JSON_REQUEST_SUFFIX = "\"}],\"temperature\": 0.7}";
+StringVal OPEN_AI_ENDPOINT(OPENAI_URL);
+StringVal API_KEY(AUTH_HEADER);
 
 // In this sample we are declaring a UDF that adds two ints and returns an int.
 IntVal AddUdf(FunctionContext* context, const IntVal& arg1, const IntVal& arg2) {
@@ -141,4 +149,41 @@ void ReturnConstantArgClose(
       context->SetFunctionState(scope, NULL);
     }
   }
+}
+
+// HAC-556: GenAI Hackathon UDFs
+// Classify input customer reviews.
+StringVal ClassifyReviews(FunctionContext* context, const StringVal& input) {
+  std::string request = "Classify the following review as positive, neutral, or negative and only include the uncapitalized category in the response: "
+      + std::string(reinterpret_cast<const char*>(input.ptr), input.len);
+  std::string params = JSON_REQUEST_PREFIX + request + JSON_REQUEST_SUFFIX;
+  StringVal prompt(params.c_str());
+  return impala::StringFunctions::AiGenerateTextImpl(context, OPEN_AI_ENDPOINT, prompt, API_KEY);
+}
+
+// Translate input string to English.
+StringVal TranslateToEnglish(FunctionContext* context, const StringVal& input) {
+  std::string request = "Translate the following to English: "
+      + std::string(reinterpret_cast<const char*>(input.ptr), input.len);
+  std::string params = JSON_REQUEST_PREFIX + request + JSON_REQUEST_SUFFIX;
+  StringVal prompt(params.c_str());
+  return impala::StringFunctions::AiGenerateTextImpl(context, OPEN_AI_ENDPOINT, prompt, API_KEY);
+}
+
+// Categorize GDP of countries.
+StringVal CategorizeGDP(FunctionContext* context, const StringVal& input) {
+  std::string request = "Categorize the following country's GDP as [low, medium, high] and only include the uncapitalized category in the response: "
+      + std::string(reinterpret_cast<const char*>(input.ptr), input.len);
+  std::string params = JSON_REQUEST_PREFIX + request + JSON_REQUEST_SUFFIX;
+  StringVal prompt(params.c_str());
+  return impala::StringFunctions::AiGenerateTextImpl(context, OPEN_AI_ENDPOINT, prompt, API_KEY);
+}
+
+// Categorize accidents in NYC.
+StringVal CategorizeAccidents(FunctionContext* context, const StringVal& input) {
+  std::string request = "Categorize the contributing factors for accidents as [driving under influence, distracted driving, other] and only include the uncapitalized category in the response: "
+      + std::string(reinterpret_cast<const char*>(input.ptr), input.len);
+  std::string params = JSON_REQUEST_PREFIX + request + JSON_REQUEST_SUFFIX;
+  StringVal prompt(params.c_str());
+  return impala::StringFunctions::AiGenerateTextImpl(context, OPEN_AI_ENDPOINT, prompt, API_KEY);
 }

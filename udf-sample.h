@@ -68,4 +68,7 @@ void ReturnConstantArgPrepare(
 void ReturnConstantArgClose(
     FunctionContext* context, FunctionContext::FunctionStateScope scope);
 
+StringVal ClassifyReviewsOpenAI(FunctionContext* context, const StringVal& input);
+StringVal ClassifyReviewsLlama(FunctionContext* context, const StringVal& input);
+
 #endif
